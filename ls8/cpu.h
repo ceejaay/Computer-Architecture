@@ -5,6 +5,16 @@
 struct cpu {
   // TODO
   // PC
+  int pc;
+  unsigned int registers[8];
+  /* int reg0[0] = 0; */
+  /* int reg1[0] = 0; */
+  /* int reg2[0] = 0; */
+  /* int reg3[0] = 0; */
+  /* int reg4[0] = 0; */
+  /* int reg5[0] = 0; // interrupt mask */
+  /* int reg6[0] = 0; // interrupt status */
+  /* int reg7[0] = 0; // stack pointer */
   // registers (array)
   // ram (array)
 };

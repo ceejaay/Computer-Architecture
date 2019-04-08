@@ -26,6 +26,16 @@ void cpu_load(struct cpu *cpu)
   // TODO: Replace this with something less hard-coded
 }
 
+
+void cpu_ram_read() {
+
+}
+ 
+void cpu_ram_write() {
+
+}
+
+
 /**
  * ALU
  */
@@ -37,6 +47,9 @@ void alu(struct cpu *cpu, enum alu_op op, unsigned char regA, unsigned char regB
       break;
 
     // TODO: implement more ALU ops
+    case HTL:
+      running = 0;
+      break;
   }
 }
 
