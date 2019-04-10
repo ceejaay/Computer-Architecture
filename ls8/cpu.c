@@ -1,18 +1,19 @@
+#include <stdlib.h>
 #include "cpu.h"
+#include <stdio.h>
+#include <string.h>
 /* #include "ls8.c" */
 /* #define HTL 1 */
 /* #define HELLO 2 */
 #define DATA_LEN 6
 
-
 /**
  * Load the binary bytes from a .ls8 source file into a RAM array
  */
-void cpu_load(struct cpu *cpu)
-{
-/* printf(" argv => %s\n", argv[0] ); */
-  char data[DATA_LEN] = {
-    // From print8.ls8
+void cpu_load(struct cpu *cpu, char **arg_v, int arg_c)
+{ 
+  /* printf(" argv => %s\n", arg_v[2] ); */
+  char data[DATA_LEN] = { // From print8.ls8
     0b10000010, // LDI R0,8
     0b00000000, // 0
     0b00001000, //8
@@ -24,7 +25,7 @@ void cpu_load(struct cpu *cpu)
   int address = 0;
   for (int i = 0; i < DATA_LEN; i++) {
     cpu->ram[address++] = data[i];
-    printf(" cpu ram : %u \n", cpu->ram[address - 1]);
+    /* printf(" cpu ram : %u \n", cpu->ram[address - 1]); */
   }
   /* cpu->ram[0] = 130; */
 
@@ -32,32 +33,30 @@ void cpu_load(struct cpu *cpu)
 }
 
 
-void cpu_ram_read(struct cpu *cpu, int index) {
+/* void cpu_ram_read(struct cpu *cpu, int index) { */
+/*   /1* return the value at the index *1/ */
+/* } */
 
-
-  /* return the value at the index */
-}
-
-void cpu_ram_write(struct cpu *cpu, int value) {
-  /* write it into the memory array */
-/* return the index? */
-}
+/* void cpu_ram_write(struct cpu *cpu, int value) { */
+/*   /1* write it into the memory array *1/ */
+/* /1* return the index? *1/ */
+/* } */
 
 /**
  * ALU
  */
-void alu(struct cpu *cpu, enum alu_op op, unsigned char regA, unsigned char regB)
-{
-  switch (op) {
-    case ALU_MUL:
-      // TODO
-      break;
+/* void alu(struct cpu *cpu, enum alu_op op, unsigned char regA, unsigned char regB) */
+/* { */
+/*   switch (op) { */
+/*     case ALU_MUL: */
+/*       // TODO */
+/*       break; */
 
-    // TODO: implement more ALU ops
-    /* case HTL; */
-    /*   break; */
-  }
-}
+/*     // TODO: implement more ALU ops */
+/*     /1* case HTL; *1/ */
+/*     /1*   break; *1/ */
+/*   } */
+/* } */
 
 /**
  * Run the CPU
@@ -100,7 +99,6 @@ void cpu_run(struct cpu *cpu)
        printf("%d\n", cpu->registers[cpu->ram[cpu->pc + 1]]);
        cpu->pc += 2;
        break;
-
 
       default:
         /* printf("cpu->pc: %d, cpu->ram: %d\n", cpu->pc, cpu->ram[0]); */
