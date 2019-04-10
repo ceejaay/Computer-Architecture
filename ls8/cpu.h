@@ -23,10 +23,12 @@ enum alu_op {
 // literals should be used.
 
 #define LDI  0b10000010 // 130
-#define HLT  0b00000001
-#define PRN  0b01000111
-#define HELLO 0b1100011
-#define MUL 0b10100010
+#define HLT  0b00000001 // 1
+#define PRN  0b01000111 // 71
+#define HELLO 0b1111111
+#define MUL 0b10100010 // 162
+#define PUSH 0b01000101 // 69
+#define POP 0b01000110 // 70
 
 /* #define HELLO */ 
 // TODO: more instructions here. These can be used in cpu_run().

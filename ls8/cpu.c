@@ -11,6 +11,7 @@ void cpu_load(struct cpu *cpu, char **arg_v, int arg_c)
 { 
   if (arg_c != 2) {
     printf(" Correct usage: ./files file_name.extension\n");
+    exit(1);
     /* return 1; */
   }
 
@@ -20,7 +21,7 @@ void cpu_load(struct cpu *cpu, char **arg_v, int arg_c)
   fp = fopen(arg_v[1], "r");
   if (fp == NULL) {
     printf("Error opening file\n");
-    /* return 2; */
+    exit(1);
   }
   while(fgets(lines, 1024, fp) != NULL) {
 
@@ -30,29 +31,21 @@ void cpu_load(struct cpu *cpu, char **arg_v, int arg_c)
     unsigned char val = strtoul(lines, &endptr, 2);
     if(lines == endptr) {
       printf("skipping: %s", lines);
+      continue;
     }
     cpu->ram[counter] = val;
     /* printf(" thsese are the values => %02d\n", val); */
     counter++;
   }
-  for(int i = 0; i< 20; i++) {
-    printf("ram => %x index: %d\n", cpu->ram[i], i);
-  }
+  /* for(int i = 0; i< 20; i++) { */
+  /*   printf("ram => %x index: %d\n", cpu->ram[i], i); */
+  /* } */
 
   fclose(fp);
 
 
 
 
-  /* printf(" argv => %s\n", arg_v[2] ); */
-  /* char data[DATA_LEN] = { // From print8.ls8 */
-  /*   /1* 0b10000010, // LDI R0,8 *1/ */
-  /*   /1* 0b00000000, // 0 *1/ */
-  /*   /1* 0b00001000, //8 *1/ */
-  /*   /1* 0b01000111, // PRN R0 *1/ */
-  /*   /1* 0b00000000, // 0k *1/ */
-  /*   /1* 0b00000001  // HLT *1/ */
-  /* }; */
 
   /* int address = 0; */
   /* for (int i = 0; i < DATA_LEN; i++) { */
@@ -96,18 +89,24 @@ void cpu_load(struct cpu *cpu, char **arg_v, int arg_c)
 void cpu_run(struct cpu *cpu)
 {
   int running = 1; // True until we get a HLT instruction
+  unsigned char arg_1, arg_2, arg_3;
   while (running) {
+    printf("Registers: \n[ ");
+    for (int i =0; i<8; i++) {
+      printf("%d ", cpu->registers[i]);
+    }
+    printf("]\n");
+
     /* int command = 0; */
     /* for(int i = 0; i<10; i++) { */
     /*  printf("ram stuff => %x\n", cpu->ram[i] ) ; */
     /* } */
+    unsigned int stack_pointer = sizeof(cpu->ram)/sizeof(cpu->ram[0]);
+/* printf("stack pointer: %d\n",  stack_pointer); */
     unsigned int command = cpu->ram[cpu->pc];
-    /* unsigned int command */
-    /* printf("command => %X\n", command); */
-    /* for(int i = 0; i<8; i++) { */
-    /*   printf("%X  ", cpu->registers[i]); */
+    int arg_count = command >> 6;
+  /* printf(" arg count: %d\n", arg_count ) ; */
 
-    /* } */
 
     switch(command) {
 /* printf(" inside switch command\n"); */
@@ -116,39 +115,59 @@ void cpu_run(struct cpu *cpu)
         running = 0;
         break;
 
-      /* case HELLO: */
-      /*   printf("hello world\n"); */
-      /*   cpu->pc += 1; */
-      /*   break; */
-
       case MUL:
-        printf("Trying to multiply");
+        /* printf("Trying to multiply\n"); */
+        /* cpu->pc += */ 
+        arg_1 = cpu->registers[cpu->pc + 1];
+
+        arg_2 = cpu->registers[cpu->pc + 2];
+        /* printf("arg 1: %d arg2: %d\n", arg_1, arg_2); */
+        running = 0;
         break;
 
+      case PUSH:
+
+printf(" stack pointer value %d\n", stack_pointer );
+      stack_pointer--;
+      arg_1 = cpu->ram[cpu->pc + 1]; //;
+printf(" AFTER stack pointer value %d\n", stack_pointer );
+      /* take the value from register 0 */
+        /* which is */
+       /* printf(" value at command + 2 %d\n", arg_1) ; */
+       cpu->ram[stack_pointer] = cpu->registers[arg_1];
+       cpu->pc += arg_count + 1;
+        /* running = 0; */
+        break;
+
+      case POP:
+       printf("POP!!\n") ;
+       cpu->pc += arg_count + 1;
+
       case LDI:
-        printf("ldi is working\n");
-        /* set the value of a register to an integer */
-       /* printf("BEFORE cpu -> pc %d\n", cpu->pc ) ; */
-       /* printf("BEFORE cpu -> ram %d\n", cpu->ram[cpu->pc]) ; */
-        /* int reg0 = */ 
-        int arg_1 = cpu->ram[cpu->pc + 1];
-        int arg_2 = cpu->ram[cpu->pc + 2];
-        cpu->registers[arg_1] = arg_2; 
-        cpu->pc += 3;
+         arg_1 = cpu->ram[cpu->pc + 1];
+         arg_2 = cpu->ram[cpu->pc + 2];
+         cpu->registers[arg_1] = arg_2;
+         cpu->pc += arg_count + 1;
+         /* cpu->pc += 3; */
+         break;
 
       case PRN:
 /* printf(" inside the prn\n"); */
-       printf("command in PRN=> %X\n", command);
-       printf("PRN: %d\n", cpu->registers[cpu->ram[cpu->pc + 1]]);
-       cpu->pc += 2;
+       /* printf("command in PRN=> %d\n", command); */
+       arg_3 = cpu->ram[cpu->pc + 1];
+       printf("PRN: %d\n", cpu->registers[arg_3]);
+       cpu->pc += arg_count + 1;
        break;
 
       default:
-        printf("command => %X\n", command);
-        /* printf("cpu->pc: %d, cpu->ram: %d\n", cpu->pc, cpu->ram[0]); */
+        printf("command in defalut=> %d\n", command);
+        /* printf("cpu->pc: %d, cpu->ram instruction: %d\n", cpu->pc, cpu->ram[0]); */
         printf("Unrecognized instructions\n");
         exit(1);
     }
+    /* arg_count += cpu->pc + 1; */
+    /* cpu->pc += arg_count + 1; */
+
     // TODO
     // 1. Get the value of the current instruction (in address PC).
     // 2. Figure out how many operands this next instruction requires
