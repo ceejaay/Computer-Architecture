@@ -92,11 +92,11 @@ void cpu_run(struct cpu *cpu)
   int running = 1; // True until we get a HLT instruction
   unsigned char arg_1, arg_2, arg_3;
   while (running) {
-    printf("Registers: \n[ ");
-    for (int i =0; i<8; i++) {
-      printf("%d ", cpu->registers[i]);
-    }
-    printf("]\n");
+    /* printf("Registers: \n[ "); */
+    /* for (int i =0; i<8; i++) { */
+    /*   printf("%d ", cpu->registers[i]); */
+    /* } */
+    /* printf("]\n"); */
 
 /* printf("stack pointer: %d\n",  stack_pointer); */
     unsigned int command = cpu->ram[cpu->pc];
@@ -132,35 +132,28 @@ void cpu_run(struct cpu *cpu)
         break;
 
       case PUSH:
-
-/* printf(" stack pointer value %d\n", stack_pointer ); */
-      stack_pointer--;
-printf("PUSH stack pointer: %d\n", stack_pointer );
-      arg_1 = cpu->ram[cpu->pc + 1]; //;
-/* printf(" AFTER stack pointer value %d\n", stack_pointer ); */
-      /* take the value from register 0 */
-        /* which is */
-       /* printf(" value at command + 2 %d\n", arg_1) ; */
-       cpu->ram[stack_pointer] = cpu->registers[arg_1];
-        /* printf("PUSH:  thing in memory address:  %d => %d \n", stack_pointer, cpu->ram[stack_pointer] ) ; */
-       cpu->pc += arg_count + 1;
-        /* running = 0; */
+        stack_pointer--;
+        /* printf("pc valuej + 1: %d\n", cpu->ram[cpu->pc +1]); */
+        arg_1 = cpu->ram[cpu->pc + 1];
+        /* printf("sp : %d\n", stack_pointer); */
+        /* printf("sp value: %d\n", cpu->ram[stack_pointer]); */
+        cpu->ram[stack_pointer] = cpu->registers[arg_1];
+        /* printf("sp value: %d\n", cpu->ram[stack_pointer]); */
+        cpu->pc += arg_count + 1;
         break;
 
       case POP:
-       /* get the current ram address which is the stack pointer */
+        /* printf("BEFORE sp : %d\n", stack_pointer); */
+        arg_1 = stack_pointer; // this gets address of the top of the stack. In ram.
+        arg_2 = cpu->ram[cpu->pc + 1]; // this is the registers where the pop goes.
+        /* printf("sp value: %d\n", cpu->ram[stack_pointer]); */
+        cpu->registers[arg_2] = cpu->ram[stack_pointer]; //this should set the register to the value the stack
+        stack_pointer++; //increment stack pointer to reduce the height of the stack
+        /* printf("AFTER sp : %d\n", stack_pointer); */
+        /* printf("sp value: %d\n", cpu->ram[stack_pointer]); */
 
-/* printf("POP:  cpu->ram[stack_pointer]: %d\n", cpu->ram[stack_pointer] ); */
-/*       printf(" POP: thing in memory address:  %d => %d \n", stack_pointer, cpu->ram[stack_pointer] ) ; */
-       arg_1 = cpu->ram[stack_pointer]; // the item off the stack
-       arg_2 = cpu->ram[cpu->pc + 1]; // this is the destination of the popped item;
-       printf(" this should be the item from the stack: %d\n", arg_1 );
-       cpu->registers[arg_2] = arg_1; //set the register to the thing off the stack
-      /* printf(" POP: thing in memory address:  %d => %d \n", stack_pointer, cpu->ram[stack_pointer] ) ; */
-
-       stack_pointer++;
-printf("POP stack pointer: %d\n", stack_pointer );
        cpu->pc += arg_count + 1;
+       break;
 
       case LDI:
          arg_1 = cpu->ram[cpu->pc + 1];
