@@ -12,7 +12,6 @@ void cpu_load(struct cpu *cpu, char **arg_v, int arg_c)
   if (arg_c != 2) {
     printf(" Correct usage: ./files file_name.extension\n");
     exit(1);
-    /* return 1; */
   }
 
   FILE *fp;
@@ -24,9 +23,6 @@ void cpu_load(struct cpu *cpu, char **arg_v, int arg_c)
     exit(1);
   }
   while(fgets(lines, 1024, fp) != NULL) {
-
-
-
     char *endptr;
     unsigned char val = strtoul(lines, &endptr, 2);
     if(lines == endptr) {
@@ -34,27 +30,9 @@ void cpu_load(struct cpu *cpu, char **arg_v, int arg_c)
       continue;
     }
     cpu->ram[counter] = val;
-    /* printf(" thsese are the values => %02d\n", val); */
     counter++;
   }
-  /* for(int i = 0; i< 20; i++) { */
-  /*   printf("ram => %x index: %d\n", cpu->ram[i], i); */
-  /* } */
-
   fclose(fp);
-
-
-
-
-
-  /* int address = 0; */
-  /* for (int i = 0; i < DATA_LEN; i++) { */
-  /*   cpu->ram[address++] = data[i]; */
-  /*   /1* printf(" cpu ram : %u \n", cpu->ram[address - 1]); *1/ */
-  /* } */
-  /* cpu->ram[0] = 130; */
-
-  // TODO: Replace this with something less hard-coded
 }
 
 
@@ -98,59 +76,36 @@ void cpu_run(struct cpu *cpu)
     /* } */
     /* printf("]\n"); */
 
-/* printf("stack pointer: %d\n",  stack_pointer); */
     unsigned int command = cpu->ram[cpu->pc];
     int arg_count = command >> 6;
-  /* printf(" arg count: %d\n", arg_count ) ; */
 
 
     switch(command) {
-/* printf(" inside switch command\n"); */
       case HLT:
-        /* printf("HLT command\n"); */
         running = 0;
         break;
 
       case MUL:
-        /* printf("Trying to multiply\n"); */
-
         arg_1 = cpu->ram[cpu->pc + 1];
-        /* printf("arg 1: %d\n", arg_1); */
         arg_2 = cpu->ram[cpu->pc + 2];
         arg_3 = cpu->ram[cpu->pc + 1];
         cpu->registers[arg_3] = cpu->registers[arg_1] * cpu->registers[arg_2];
-
-
-/* printf("reg @ PC +1: %d\n", cpu->registers[arg_1] ); */
-/* printf("reg @ PC +2: %d\n", cpu->registers[arg_2] ); */
-        /* cpu->pc += */ 
-        /* printf("arg 1: %d arg2: %d\n", arg_1, arg_2); */
-        /* for(int i = 0; i< 15; i++) { */
-        /*   printf("index: %d ram: %d\n",i, cpu->ram[i]); */
-        /* } */
         cpu->pc += arg_count + 1;
         break;
 
       case PUSH:
         stack_pointer--;
-        /* printf("pc valuej + 1: %d\n", cpu->ram[cpu->pc +1]); */
         arg_1 = cpu->ram[cpu->pc + 1];
-        /* printf("sp : %d\n", stack_pointer); */
-        /* printf("sp value: %d\n", cpu->ram[stack_pointer]); */
         cpu->ram[stack_pointer] = cpu->registers[arg_1];
-        /* printf("sp value: %d\n", cpu->ram[stack_pointer]); */
         cpu->pc += arg_count + 1;
         break;
 
       case POP:
-        /* printf("BEFORE sp : %d\n", stack_pointer); */
         arg_1 = stack_pointer; // this gets address of the top of the stack. In ram.
         arg_2 = cpu->ram[cpu->pc + 1]; // this is the registers where the pop goes.
         /* printf("sp value: %d\n", cpu->ram[stack_pointer]); */
         cpu->registers[arg_2] = cpu->ram[stack_pointer]; //this should set the register to the value the stack
         stack_pointer++; //increment stack pointer to reduce the height of the stack
-        /* printf("AFTER sp : %d\n", stack_pointer); */
-        /* printf("sp value: %d\n", cpu->ram[stack_pointer]); */
 
        cpu->pc += arg_count + 1;
        break;
@@ -160,50 +115,63 @@ void cpu_run(struct cpu *cpu)
          arg_2 = cpu->ram[cpu->pc + 2];
          cpu->registers[arg_1] = arg_2;
          cpu->pc += arg_count + 1;
-         /* cpu->[]pc += 3; */
          break;
 
       case PRN:
-/* printf(" inside the prn\n"); */
-       /* printf("command in PRN=> %d\n", command); */
        arg_3 = cpu->ram[cpu->pc + 1];
        printf("PRN: %d\n", cpu->registers[arg_3]);
        cpu->pc += arg_count + 1;
        break;
 
+      case CALL:
+        stack_pointer--; //decrement the stack
+        arg_1 = cpu->pc + 2; //get the ADDRESS of  the  next instruction
+        cpu->ram[stack_pointer] = arg_1; // put the next instruction on the stack
+        arg_2 = cpu->ram[cpu->pc + 1]; // register value to get instructions from 
+        /* printf("value at register 1: %d\n", arg_2); */
+        /* printf("R1: %d\n", cpu->registers[arg_2]); */
+        /* printf("PC before: %d\n", cpu->pc); */
+        cpu->pc = cpu->registers[arg_2];
+        /* printf("PC after: %d\n", cpu->pc); */
+        /* printf("value at stack pointer: %d\n", cpu->ram[stack_pointer]); */
+        /* printf("CALL!!!\n"); */
+      /* printf("the next instruction: %d\n", arg_1) ; */
+        /* cpu->pc += arg_count + 1; */
+        break;
+
+       case ADD:
+         /* printf("ADD!!!\n"); */
+         arg_1 = cpu->ram[cpu->pc + 1]; //first register
+         arg_2 = cpu->ram[cpu->pc + 2]; // second register
+         arg_3 = cpu->ram[cpu->pc + 1];
+         cpu->registers[arg_3] = cpu->registers[arg_1] + cpu->registers[arg_2];
+         cpu->pc += arg_count + 1;
+         break;
+
+       case RET:
+         /* printf("RET!!\n"); */
+        arg_1 = stack_pointer; // this gets address of the top of the stack. In ram.
+        cpu->pc = cpu->ram[stack_pointer];
+
+        /* printf("sp value: %d\n", cpu->ram[stack_pointer]); */
+        /* printf("PC: %d\n", cpu->pc); */
+        stack_pointer++; //increment stack pointer to reduce the height of the stack
+
+         break;
+
+
       default:
-        printf("command in defalut=> %d\n", command);
-        /* printf("cpu->pc: %d, cpu->ram instruction: %d\n", cpu->pc, cpu->ram[0]); */
-        printf("Unrecognized instructions\n");
+        printf("Unrecognized instructions: %d\n", command);
         exit(1);
     }
-    /* arg_count += cpu->pc + 1; */
-    /* cpu->pc += arg_count + 1; */
-
-    // TODO
-    // 1. Get the value of the current instruction (in address PC).
-    // 2. Figure out how many operands this next instruction requires
-    // 3. Get the appropriate value(s) of the operands following this instruction
-    // 4. switch() over it to decide on a course of action.
-    // 5. Do whatever the instruction should do according to the spec.
-    // 6. Move the PC to the next instruction.
   }
 }
 
-/**
- * Initialize a CPU struct
- */
 void cpu_init(struct cpu *cpu)
 {
   cpu->pc = 0;
-  /* printf("initializing cpu\n"); */
   unsigned int n = 0;
   memset(cpu->ram, 0, n * sizeof(cpu->ram[0]));
   memset(cpu->registers, 0, n * sizeof(cpu->registers[0]));
-    /* for (int i = 0; i<8; i++) { */
-    /*   /1* what is going on here? There seems to be some values that are not 0 *1/ */
-    /*   printf("should be zeor => %d\n", cpu->registers[i]); */
-    /* } */
-
-  // TODO: Initialize the PC and other special registers
+  cpu->registers[7] = 0xf4;
 }
