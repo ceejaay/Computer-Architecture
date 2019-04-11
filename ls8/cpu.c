@@ -113,11 +113,21 @@ void cpu_run(struct cpu *cpu)
 
       case MUL:
         /* printf("Trying to multiply\n"); */
-        /* cpu->pc += */ 
-        arg_1 = cpu->registers[cpu->pc + 1];
 
-        arg_2 = cpu->registers[cpu->pc + 2];
+        arg_1 = cpu->ram[cpu->pc + 1];
+        /* printf("arg 1: %d\n", arg_1); */
+        arg_2 = cpu->ram[cpu->pc + 2];
+        arg_3 = cpu->ram[cpu->pc + 1];
+        cpu->registers[arg_3] = cpu->registers[arg_1] * cpu->registers[arg_2];
+
+
+/* printf("reg @ PC +1: %d\n", cpu->registers[arg_1] ); */
+/* printf("reg @ PC +2: %d\n", cpu->registers[arg_2] ); */
+        /* cpu->pc += */ 
         /* printf("arg 1: %d arg2: %d\n", arg_1, arg_2); */
+        /* for(int i = 0; i< 15; i++) { */
+        /*   printf("index: %d ram: %d\n",i, cpu->ram[i]); */
+        /* } */
         cpu->pc += arg_count + 1;
         break;
 
@@ -125,6 +135,7 @@ void cpu_run(struct cpu *cpu)
 
 /* printf(" stack pointer value %d\n", stack_pointer ); */
       stack_pointer--;
+printf("PUSH stack pointer: %d\n", stack_pointer );
       arg_1 = cpu->ram[cpu->pc + 1]; //;
 /* printf(" AFTER stack pointer value %d\n", stack_pointer ); */
       /* take the value from register 0 */
@@ -138,13 +149,17 @@ void cpu_run(struct cpu *cpu)
 
       case POP:
        /* get the current ram address which is the stack pointer */
-printf("POP:  cpu->ram[stack_pointer]: %d\n", cpu->ram[stack_pointer] );
+
+/* printf("POP:  cpu->ram[stack_pointer]: %d\n", cpu->ram[stack_pointer] ); */
+/*       printf(" POP: thing in memory address:  %d => %d \n", stack_pointer, cpu->ram[stack_pointer] ) ; */
        arg_1 = cpu->ram[stack_pointer]; // the item off the stack
-       arg_2 = cpu->ram[cpu->pc + 1]; // get the next thing  in the ram
+       arg_2 = cpu->ram[cpu->pc + 1]; // this is the destination of the popped item;
+       printf(" this should be the item from the stack: %d\n", arg_1 );
        cpu->registers[arg_2] = arg_1; //set the register to the thing off the stack
       /* printf(" POP: thing in memory address:  %d => %d \n", stack_pointer, cpu->ram[stack_pointer] ) ; */
 
        stack_pointer++;
+printf("POP stack pointer: %d\n", stack_pointer );
        cpu->pc += arg_count + 1;
 
       case LDI:
