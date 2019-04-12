@@ -35,6 +35,9 @@ void cpu_load(struct cpu *cpu, char **arg_v, int arg_c)
   fclose(fp);
 }
 
+  int l_flag = 0;
+  int e_flag = 0;
+  int g_flag = 0;
 
 /* void cpu_ram_read(struct cpu *cpu, int index) { */
 /*   /1* return the value at the index *1/ */
@@ -48,18 +51,25 @@ void cpu_load(struct cpu *cpu, char **arg_v, int arg_c)
 /**
  * ALU
  */
-/* void alu(struct cpu *cpu, enum alu_op op, unsigned char regA, unsigned char regB) */
-/* { */
-/*   switch (op) { */
-/*     case ALU_MUL: */
-/*       // TODO */
-/*       break; */
+void alu(struct cpu *cpu, enum alu_op op, unsigned char regA, unsigned char regB)
 
-/*     // TODO: implement more ALU ops */
-/*     /1* case HTL; *1/ */
-/*     /1*   break; *1/ */
-/*   } */
-/* } */
+{ switch (op) {
+    case ALU_MUL:
+        cpu->registers[cpu->ram[cpu->pc + 1]] = cpu->registers[regA] * cpu->registers[regB];
+      break;
+
+    case ALU_CMP:
+      if(cpu->registers[regA] < cpu->registers[regB]) {
+        l_flag = 1;
+      } else if (cpu->registers[regA] > cpu->registers[regB]) {
+        g_flag = 1;
+      } else {
+        e_flag = 1;
+      }
+      break;
+
+  }
+}
 
 /**
  * Run the CPU
@@ -70,11 +80,11 @@ void cpu_run(struct cpu *cpu)
   int running = 1; // True until we get a HLT instruction
   unsigned char arg_1, arg_2, arg_3;
   while (running) {
-    /* printf("Registers: \n[ "); */
-    /* for (int i =0; i<8; i++) { */
-    /*   printf("%d ", cpu->registers[i]); */
-    /* } */
-    /* printf("]\n"); */
+    printf("Registers: \n[ ");
+    for (int i =0; i<8; i++) {
+      printf("%d ", cpu->registers[i]);
+    }
+    printf("]\n");
 
     unsigned int command = cpu->ram[cpu->pc];
     int arg_count = command >> 6;
@@ -86,10 +96,11 @@ void cpu_run(struct cpu *cpu)
         break;
 
       case MUL:
-        arg_1 = cpu->ram[cpu->pc + 1];
-        arg_2 = cpu->ram[cpu->pc + 2];
-        arg_3 = cpu->ram[cpu->pc + 1];
-        cpu->registers[arg_3] = cpu->registers[arg_1] * cpu->registers[arg_2];
+        arg_1 = cpu->ram[cpu->pc + 1]; // register 0 instrcutions
+        arg_2 = cpu->ram[cpu->pc + 2]; // register 1 
+        /* arg_3 = cpu->ram[cpu->pc + 1]; // destination register for the answer */
+        alu(cpu, ALU_MUL, arg_1, arg_2);
+        /* cpu->registers[arg_3] = cpu->registers[arg_1] * cpu->registers[arg_2]; */
         cpu->pc += arg_count + 1;
         break;
 
@@ -128,19 +139,10 @@ void cpu_run(struct cpu *cpu)
         arg_1 = cpu->pc + 2; //get the ADDRESS of  the  next instruction
         cpu->ram[stack_pointer] = arg_1; // put the next instruction on the stack
         arg_2 = cpu->ram[cpu->pc + 1]; // register value to get instructions from 
-        /* printf("value at register 1: %d\n", arg_2); */
-        /* printf("R1: %d\n", cpu->registers[arg_2]); */
-        /* printf("PC before: %d\n", cpu->pc); */
         cpu->pc = cpu->registers[arg_2];
-        /* printf("PC after: %d\n", cpu->pc); */
-        /* printf("value at stack pointer: %d\n", cpu->ram[stack_pointer]); */
-        /* printf("CALL!!!\n"); */
-      /* printf("the next instruction: %d\n", arg_1) ; */
-        /* cpu->pc += arg_count + 1; */
         break;
 
        case ADD:
-         /* printf("ADD!!!\n"); */
          arg_1 = cpu->ram[cpu->pc + 1]; //first register
          arg_2 = cpu->ram[cpu->pc + 2]; // second register
          arg_3 = cpu->ram[cpu->pc + 1];
@@ -149,14 +151,53 @@ void cpu_run(struct cpu *cpu)
          break;
 
        case RET:
-         /* printf("RET!!\n"); */
         arg_1 = stack_pointer; // this gets address of the top of the stack. In ram.
         cpu->pc = cpu->ram[stack_pointer];
 
-        /* printf("sp value: %d\n", cpu->ram[stack_pointer]); */
-        /* printf("PC: %d\n", cpu->pc); */
         stack_pointer++; //increment stack pointer to reduce the height of the stack
 
+         break;
+
+       case CMP:
+         arg_1 = cpu->ram[cpu->pc + 1]; //the register values 
+         arg_2 = cpu->ram[cpu->pc + 2];
+         alu(cpu, ALU_CMP, arg_1, arg_2);
+         /* if( cpu->registers[arg_1] > cpu->registers[arg_2]) { // the comparison */
+         /*   printf("Larger: %d\n", cpu->registers[arg_1]); */
+         /* } else { */
+         /*   printf("Larger: %d\n", cpu->registers[arg_2]); */
+
+         /* } */
+
+         cpu->pc += arg_count + 1;
+         break;
+
+       case JEQ:
+         if(e_flag == 1) {
+printf(" checking Jeq flags\n");
+           arg_1 = cpu->ram[cpu->pc + 1];// get the register value 
+           /* printf("arg 1 should be ") */
+           cpu->pc = cpu->registers[arg_1];
+         }
+         cpu->pc += arg_count + 1;
+         break;
+
+       case JNE:
+
+         if(e_flag == 0) {
+printf(" checking jne flags\n");
+           arg_1 = cpu->ram[cpu->pc + 1];
+           printf("register 2: %d\n", cpu->registers[arg_1]);
+           cpu->pc = cpu->registers[arg_1];
+         }
+         cpu->pc += arg_count + 1;
+         break;
+
+       case JMP:
+         arg_1 = cpu->ram[cpu->pc + 1];
+         printf("arg1 should be register 2 or 1%d\n", arg_1);
+         printf("JMP!!\n");
+         running = 0;
          break;
 
 

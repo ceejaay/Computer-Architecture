@@ -13,9 +13,13 @@ struct cpu {
 
 // ALU operations
 enum alu_op {
-	ALU_MUL
-	// Add more here
+	ALU_MUL,
+	/* ALU_ADD, // Add more here */
+	ALU_CMP,// Add more here
+	/* ALU_INC,// Add more here */
+	/* ALU_DEC// Add more here */
 };
+
 
 // Instructions
 
@@ -31,6 +35,10 @@ enum alu_op {
 #define CALL 0b01010000 // 80
 #define ADD 0b10100000 // 160
 #define RET 0b00010001// 160
+#define CMP 0b10100111// 167
+#define JEQ 0b01010101// 167
+#define JNE 0b01010110 // 86
+#define JMP 0b01010100 // 84
 /* #define HELLO */ 
 // TODO: more instructions here. These can be used in cpu_run().
 
